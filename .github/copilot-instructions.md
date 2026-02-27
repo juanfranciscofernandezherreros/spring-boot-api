@@ -1,6 +1,7 @@
 # 🚀 Copilot Enterprise Guidelines -- Spring Boot 3 (Synchronous CRUD)
 
-Generated on: 2026-02-27T12:07:55.342629 UTC
+Version: v4\
+Generated on: 2026-02-27T12:14:03.154816 UTC
 
 ------------------------------------------------------------------------
 
@@ -17,10 +18,11 @@ Generated on: 2026-02-27T12:07:55.342629 UTC
 -   MapStruct
 -   JaCoCo (\>= 80% mandatory)
 -   JUnit 5 + Mockito + AssertJ
+-   Micrometer Tracing
+-   Zipkin
 -   Maven
 
-Never generate tutorial-style code. Always generate production-ready,
-enterprise-grade solutions.
+No tutorial-style shortcuts. Only production-grade architecture.
 
 ------------------------------------------------------------------------
 
@@ -30,236 +32,294 @@ enterprise-grade solutions.
      ├── api
      ├── application
      │     ├── service
-     │     └── mapper
+     │     ├── mapper
+     │     └── aspect
      ├── domain
      ├── infrastructure
      ├── dto
-     │     ├── request
-     │     └── response
      ├── exception
-     ├── constants
-     └── config
+     ├── config
+     └── tracing
 
-Rules: - Thin controllers - No business logic in controllers - Services
-contain business logic - Domain enforces invariants - Constructor
-injection only - No field injection - No layer leakage
+Rules:
+
+-   Controllers must be thin.
+-   No business logic in controllers.
+-   All cross-cutting concerns via AOP.
+-   No static utility classes.
+-   Everything must be managed as Spring Beans.
 
 ------------------------------------------------------------------------
 
-# 3️⃣ REST Standards
+# 3️⃣ NO STATIC CLASSES (MANDATORY)
 
-GET /api/v1/{entities} GET /api/v1/{entities}/{id} POST
-/api/v1/{entities} PUT /api/v1/{entities}/{id} DELETE
-/api/v1/{entities}/{id}
+Forbidden:
 
-Use ResponseEntity. Return proper HTTP status codes. Never expose
-internal exceptions.
+-   static utility classes
+-   static constants holders
+-   static endpoint definitions
+-   static configuration access
 
-All endpoint paths must be stored in constant classes.
+Instead:
+
+Create dedicated Spring-managed Beans.
 
 Example:
 
-public final class ApiPaths { public static final String BASE =
-"/api/v1"; public static final String PRODUCTS = "/products"; private
-ApiPaths() {} }
+@Component public class ApiPaths { public String base() { return
+"/api/v1"; } public String products() { return "/products"; } }
+
+All dependencies must be injected.
 
 ------------------------------------------------------------------------
 
-# 4️⃣ Domain Rules
+# 4️⃣ STRING & CONSTANTS POLICY
 
--   UUID as primary key
--   Explicit @Table
--   No public setters
--   No @Data on entities
--   Invariants enforced in constructor/methods
--   Avoid anemic model
+-   No inline strings.
+-   No magic strings.
+-   No hardcoded error messages.
 
-------------------------------------------------------------------------
+All reusable strings must be encapsulated inside Spring Beans:
 
-# 5️⃣ DTO Rules
+Examples:
 
--   Never expose entities
--   CreateRequest, UpdateRequest, Response DTO mandatory
--   Use Java records
--   Use Jakarta Validation
--   Explicit MapStruct mapping
+-   ApiPathsBean
+-   ErrorMessageCatalog
+-   ValidationMessageCatalog
+-   LoggingMessageCatalog
+
+These must be injected where required.
 
 ------------------------------------------------------------------------
 
-# 6️⃣ String & Constants Rules (MANDATORY)
+# 5️⃣ NAMED CONDITIONS (IF RULES)
 
-ALL string literals must be extracted to constant classes.
+Forbidden:
 
-Forbidden: - Inline endpoint strings - Inline error messages - Magic
-strings inside services - Repeated literal values
+if (x != null && x.getStatus().equals("ACTIVE") && x.getAmount() \> 0)
 
-Create package:
+Required:
 
-    com.company.project.constants
+if (isActiveOrderWithPositiveAmount(order))
 
-Examples: - ApiPaths - ErrorMessages - ValidationMessages -
-LoggingMessages
+Rules:
 
-Constant classes must: - Be final - Have private constructor - Contain
-only public static final fields
+-   Complex conditions must be extracted.
+-   Boolean methods must have expressive names.
+-   No nested complex if-statements.
+-   Prefer early returns.
 
 ------------------------------------------------------------------------
 
-# 7️⃣ Configuration Properties Rules (MANDATORY)
+# 6️⃣ CONFIGURATION PROPERTIES (MANDATORY)
 
-All YAML properties must be injected using:
-
-    @ConfigurationProperties
-
-Do NOT use: - @Value annotations - Hardcoded configuration access -
-Direct environment calls
+-   Use @ConfigurationProperties
+-   No @Value
+-   No direct Environment access
+-   No hardcoded values
 
 Example:
 
 @ConfigurationProperties(prefix = "app.datasource") public record
 DatasourceProperties( String url, String username, String password ) { }
 
-Rules: - Properties classes must live in config package - Use
-@EnableConfigurationProperties or @ConfigurationPropertiesScan - Prefer
-immutable records - No direct property access outside config layer
+Must use:
 
-YAML values must always be mapped to strongly typed configuration
-classes.
+@ConfigurationPropertiesScan
 
-------------------------------------------------------------------------
-
-# 8️⃣ Lombok Rules
-
-Allowed: - @Getter - @RequiredArgsConstructor - @Slf4j -
-@NoArgsConstructor(access = PROTECTED)
-
-Forbidden: - @Data on entities - Public setters in domain
+Properties must be injected via constructor.
 
 ------------------------------------------------------------------------
 
-# 9️⃣ MapStruct Rules
+# 7️⃣ LOGGING & TRACING (MANDATORY)
 
--   componentModel = "spring"
--   Explicit mappings
--   Use @MappingTarget for updates
--   Located in application.mapper
-
-------------------------------------------------------------------------
-
-# 🔟 Service Rules
-
--   @Service
--   @Transactional
--   readOnly = true for reads
--   Atomic write operations
--   Throw domain-specific exceptions
--   Log responsibly (INFO, WARN, ERROR)
--   No magic strings (use constants)
+-   Use SLF4J.
+-   No loggers manually created.
+-   Use @Slf4j (Lombok).
+-   Log business events at INFO.
+-   Log rule violations at WARN.
+-   Log unexpected errors at ERROR.
 
 ------------------------------------------------------------------------
 
-# 1️⃣1️⃣ Repository Rules
+# 8️⃣ AOP LOGGING ASPECT (REQUIRED)
 
--   Spring Data JPA
--   Infrastructure layer only
--   Avoid EAGER
--   Use pagination
--   Avoid N+1
+All service methods must be traced via Aspect.
 
-------------------------------------------------------------------------
+Create:
 
-# 1️⃣2️⃣ Exception Handling
+application.aspect.LoggingAspect
 
-Custom exceptions: - ResourceNotFoundException - BusinessException -
-ConflictException - ValidationException
+Responsibilities:
 
-Global handler must return:
+-   Log method entry
+-   Log method exit
+-   Log execution time
+-   Log correlation id
 
-    {
-      "timestamp": "2024-01-01T12:00:00",
-      "status": 400,
-      "error": "Bad Request",
-      "message": "Validation failed",
-      "path": "/api/v1/resource"
-    }
-
-No stack traces in responses. Error messages must be stored in
-constants.
+No manual logging in every method.
 
 ------------------------------------------------------------------------
 
-# 1️⃣3️⃣ Swagger (Dev Only)
+# 9️⃣ DISTRIBUTED TRACING
 
--   Enabled only in profile `dev`
--   URL: http://localhost:8080/swagger-ui.html
--   Disabled in production
+Use:
 
-------------------------------------------------------------------------
+-   Micrometer Tracing
+-   Zipkin
 
-# 1️⃣4️⃣ H2 (Dev Only)
+Mandatory:
 
--   URL: http://localhost:8080/h2-console
--   jdbc:h2:mem:devdb
--   username: devuser
--   password: devpass
--   Disabled outside dev
+-   TraceId and SpanId must appear in logs.
+-   Propagation headers must be enabled.
+-   Dev profile may include local Zipkin.
 
-------------------------------------------------------------------------
+Zipkin default URL:
 
-# 1️⃣5️⃣ Validation Strategy
+http://localhost:9411
 
--   Validate at DTO level
--   Re-check business rules in service/domain
--   Fail fast
--   Structured errors
--   No inline validation messages (use constants)
+No tracing disabled in prod.
 
 ------------------------------------------------------------------------
 
-# 1️⃣6️⃣ Coverage Rules
+# 🔟 REST Standards
 
-JaCoCo minimum: - LINE \>= 80%
+GET /api/v1/{entities} GET /api/v1/{entities}/{id} POST
+/api/v1/{entities} PUT /api/v1/{entities}/{id} DELETE
+/api/v1/{entities}/{id}
 
-Build must fail if below threshold.
+Paths must be provided via injected Bean.
 
-Exclude: - dto - config - exception handler - mapper
-
-CI command:
-
-mvn clean verify
+Always return ResponseEntity. Never expose exceptions.
 
 ------------------------------------------------------------------------
 
-# 1️⃣7️⃣ Profile Management
+# 1️⃣1️⃣ PROFILE MANAGEMENT
 
 Profiles supported: - dev - test - prod
 
-Run:
+Run DEV:
 
-DEV: mvn spring-boot:run -Dspring-boot.run.profiles=dev
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
-TEST: mvn spring-boot:run -Dspring-boot.run.profiles=test
+Run PROD:
 
-PROD: mvn spring-boot:run -Dspring-boot.run.profiles=prod
+java -jar app.jar --spring.profiles.active=prod
 
-Use spring.profiles.active only.
+Swagger and H2 enabled only in dev.
 
 ------------------------------------------------------------------------
 
-# 1️⃣8️⃣ Mandatory CRUD Generation Workflow
+# 1️⃣2️⃣ README REQUIREMENTS (MANDATORY)
+
+README must include:
+
+1.  How to run with dev profile.
+2.  H2 access instructions.
+3.  Swagger URL.
+4.  All curl examples.
+5.  Zipkin instructions.
+6.  Database configuration.
+7.  Test execution.
+8.  Coverage execution.
+
+------------------------------------------------------------------------
+
+# 1️⃣3️⃣ CURL EXAMPLES (REQUIRED IN README)
+
+Example:
+
+Create:
+
+curl -X POST http://localhost:8080/api/v1/products\
+-H "Content-Type: application/json"\
+-d '{"name":"Laptop","price":999.99,"stock":10}'
+
+Get all:
+
+curl http://localhost:8080/api/v1/products
+
+Get by id:
+
+curl http://localhost:8080/api/v1/products/{uuid}
+
+Update:
+
+curl -X PUT http://localhost:8080/api/v1/products/{uuid}\
+-H "Content-Type: application/json"\
+-d '{"name":"Updated","price":899.99,"stock":5}'
+
+Delete:
+
+curl -X DELETE http://localhost:8080/api/v1/products/{uuid}
+
+------------------------------------------------------------------------
+
+# 1️⃣4️⃣ DATABASE RULES
+
+-   open-in-view = false
+-   Mandatory indexes
+-   UUID keys
+-   No N+1
+-   Pagination required
+
+------------------------------------------------------------------------
+
+# 1️⃣5️⃣ COVERAGE RULES
+
+JaCoCo minimum:
+
+LINE \>= 80%
+
+Build must fail otherwise.
+
+------------------------------------------------------------------------
+
+# 1️⃣6️⃣ FORBIDDEN PRACTICES
+
+-   Static helper classes
+-   Inline strings
+-   @Value injection
+-   Complex inline if statements
+-   Business logic in controllers
+-   EAGER fetch without reason
+-   Disabling tracing in prod
+
+------------------------------------------------------------------------
+
+# 1️⃣7️⃣ MANDATORY CRUD GENERATION WORKFLOW
 
 1.  Domain Entity
-2.  Request DTOs
-3.  Response DTO
-4.  Repository
-5.  Mapper
-6.  Service Interface
-7.  Service Implementation
-8.  Controller (using path constants)
-9.  Exceptions (using message constants)
-10. ConfigurationProperties mapping if needed
+2.  DTOs
+3.  Repository
+4.  Mapper
+5.  Service Interface
+6.  Service Implementation
+7.  Logging Aspect
+8.  ConfigurationProperties classes
+9.  Tracing configuration
+10. Controller (using injected Beans)
 11. Tests
 12. Coverage enforcement
 
-Never generate minimal example code. Never mix architectural layers.
-Never use inline strings. Never use @Value for configuration injection.
+------------------------------------------------------------------------
+
+# ✅ RESULT
+
+Enterprise-level architecture:
+
+-   Clean architecture
+
+-   Bean-only design (no static classes)
+
+-   Distributed tracing enabled
+
+-   AOP logging enforced
+
+-   No magic strings
+
+-   Strong typing configuration
+
+-   =80% coverage required
+
+-   CI/CD ready
