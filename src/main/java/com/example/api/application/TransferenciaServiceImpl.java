@@ -6,6 +6,7 @@ import com.example.api.domain.Transferencia;
 import com.example.api.dto.request.CreateTransferenciaRequest;
 import com.example.api.dto.request.UpdateTransferenciaRequest;
 import com.example.api.dto.response.TransferenciaResponse;
+import com.example.api.exception.BusinessException;
 import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.infrastructure.TransferenciaRepository;
 import org.springframework.data.domain.Page;
@@ -71,7 +72,7 @@ public class TransferenciaServiceImpl implements TransferenciaService {
                 request.importe(),
                 request.divisa(),
                 request.concepto(),
-                EstadoTransferencia.valueOf(request.estado()),
+                parseEstado(request.estado()),
                 request.fechaEjecucion(),
                 request.referenciaExterna()
         );
@@ -87,5 +88,13 @@ public class TransferenciaServiceImpl implements TransferenciaService {
                     "Transfer not found with id: " + id);
         }
         repository.deleteById(id);
+    }
+
+    private EstadoTransferencia parseEstado(String estado) {
+        try {
+            return EstadoTransferencia.valueOf(estado);
+        } catch (IllegalArgumentException ex) {
+            throw new BusinessException("Invalid transfer state: " + estado);
+        }
     }
 }

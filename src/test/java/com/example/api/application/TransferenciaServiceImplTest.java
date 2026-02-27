@@ -6,6 +6,7 @@ import com.example.api.domain.Transferencia;
 import com.example.api.dto.request.CreateTransferenciaRequest;
 import com.example.api.dto.request.UpdateTransferenciaRequest;
 import com.example.api.dto.response.TransferenciaResponse;
+import com.example.api.exception.BusinessException;
 import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.infrastructure.TransferenciaRepository;
 import org.junit.jupiter.api.Test;
@@ -163,5 +164,20 @@ class TransferenciaServiceImplTest {
                 .hasMessageContaining(NON_EXISTENT_ID.toString());
 
         verify(repository, never()).deleteById(NON_EXISTENT_ID);
+    }
+
+    @Test
+    void update_shouldThrowBusinessException_whenEstadoIsInvalid() {
+        Transferencia entity = new Transferencia(
+                100L, 200L, new BigDecimal("500.00"), "EUR", "Test payment", "REF-001");
+        UpdateTransferenciaRequest request = new UpdateTransferenciaRequest(
+                100L, 200L, new BigDecimal("500.00"), "EUR",
+                "Test payment", "INVALID_STATE", null, "REF-001");
+
+        when(repository.findById(SAMPLE_ID)).thenReturn(Optional.of(entity));
+
+        assertThatThrownBy(() -> service.update(SAMPLE_ID, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Invalid transfer state: INVALID_STATE");
     }
 }
