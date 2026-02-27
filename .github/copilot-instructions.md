@@ -1,268 +1,261 @@
-# 🚀 Copilot Enterprise Guidelines – Spring Boot 3 (Synchronous CRUD)
-
-Copilot must generate production-ready, enterprise-grade Spring Boot code.
-
-Target stack:
-- Java 21
-- Spring Boot 3.x
-- Spring Web (synchronous)
-- Spring Data JPA
-- Jakarta Validation
-- PostgreSQL
-- Maven
+# 🚀 Copilot Enterprise Guidelines -- Spring Boot 3 (Synchronous CRUD)
 
-Never generate tutorial-style code.
-Always prefer robust, maintainable, scalable solutions.
+Generated on: 2026-02-27T12:01:07.195371 UTC
 
----
+------------------------------------------------------------------------
 
-## 1️⃣ Architecture Rules
+# 1️⃣ Target Stack
 
-Follow Clean Architecture principles.
+-   Java 21
+-   Spring Boot 3.x
+-   Spring Web (synchronous)
+-   Spring Data JPA
+-   Jakarta Validation
+-   PostgreSQL (default)
+-   H2 (dev profile only)
+-   Lombok
+-   MapStruct
+-   JaCoCo (\>= 80% mandatory)
+-   JUnit 5 + Mockito + AssertJ
+-   Maven
 
-Base package structure:
+Never generate tutorial-style code. Always generate production-ready,
+enterprise-grade solutions.
 
-```
-com.company.project
- ├── api            (Controllers)
- ├── application    (Service interfaces + implementations)
- ├── domain         (Entities + business rules)
- ├── infrastructure (Repositories + configurations)
- ├── dto            (Request/Response models)
- ├── exception      (Custom exceptions + handler)
- └── config         (Global configuration)
-```
+------------------------------------------------------------------------
 
-Rules:
+# 2️⃣ Clean Architecture
 
-- Controllers must be thin.
-- No business logic in controllers.
-- Business logic belongs to Service layer.
-- Domain enforces invariants.
-- Persistence details must not leak outside infrastructure.
-- Use constructor injection only.
+    com.company.project
+     ├── api
+     ├── application
+     │     ├── service
+     │     └── mapper
+     ├── domain
+     ├── infrastructure
+     ├── dto
+     │     ├── request
+     │     └── response
+     ├── exception
+     └── config
 
----
+Rules: - Thin controllers - No business logic in controllers - Services
+contain business logic - Domain enforces invariants - Constructor
+injection only - No field injection - No layer leakage
 
-## 2️⃣ REST API Standards
+------------------------------------------------------------------------
 
-Generate synchronous REST endpoints.
+# 3️⃣ REST Standards
 
-Standard CRUD mapping:
+GET /api/v1/{entities} GET /api/v1/{entities}/{id} POST
+/api/v1/{entities} PUT /api/v1/{entities}/{id} DELETE
+/api/v1/{entities}/{id}
 
-```
-GET     /api/v1/{entities}
-GET     /api/v1/{entities}/{id}
-POST    /api/v1/{entities}
-PUT     /api/v1/{entities}/{id}
-DELETE  /api/v1/{entities}/{id}
-```
+Use ResponseEntity. Return proper HTTP status codes. Never expose
+internal exceptions.
 
-Rules:
+------------------------------------------------------------------------
 
-- Always return `ResponseEntity`
-- Use correct HTTP status codes:
-  - 200 OK
-  - 201 Created
-  - 204 No Content
-  - 400 Bad Request
-  - 404 Not Found
-  - 409 Conflict
-  - 500 Internal Server Error
+# 4️⃣ Domain Rules
 
-Never expose exceptions directly.
+-   UUID as primary key
+-   Explicit @Table
+-   No public setters
+-   No @Data on entities
+-   Invariants enforced in constructor/methods
+-   Avoid anemic model
 
----
+------------------------------------------------------------------------
 
-## 3️⃣ Domain Entity Rules
+# 5️⃣ DTO Rules
 
-- Use JPA annotations.
-- Explicit `@Table` with indexes when appropriate.
-- Prefer UUID as primary key.
-- Avoid public setters.
-- Enforce invariants in constructor or methods.
-- Avoid anemic domain model.
-- Do not use `Optional` in entity fields.
+-   Never expose entities
+-   CreateRequest, UpdateRequest, Response DTO mandatory
+-   Use Java records
+-   Use Jakarta Validation
+-   Explicit MapStruct mapping
 
-Example principles:
-- Validate constraints inside the entity.
-- Keep domain expressive, not just getters/setters.
+------------------------------------------------------------------------
 
----
+# 6️⃣ Lombok Rules
 
-## 4️⃣ DTO Rules
+Allowed: - @Getter - @RequiredArgsConstructor - @Slf4j -
+@NoArgsConstructor(access = PROTECTED)
 
-- Never expose Entity objects in API.
-- Always create:
-  - `CreateRequest`
-  - `UpdateRequest`
-  - `Response` DTO
-- Use Java records for DTOs.
-- Apply Jakarta Validation annotations.
-- Explicit mapping between Entity and DTO.
-- Do NOT rely on reflection-based automappers unless requested.
+Forbidden: - @Data on entities - Public setters in domain
 
----
+------------------------------------------------------------------------
 
-## 5️⃣ Repository Rules
+# 7️⃣ MapStruct Rules
 
-- Use Spring Data JPA.
-- Repository interfaces in infrastructure layer.
-- No direct repository access from controllers.
-- Keep queries explicit if custom logic needed.
-- Avoid unnecessary EAGER fetches.
+-   componentModel = "spring"
+-   Explicit mappings
+-   Use @MappingTarget for updates
+-   Located in application.mapper
 
----
+------------------------------------------------------------------------
 
-## 6️⃣ Service Layer Rules
+# 8️⃣ Service Rules
 
-- Services must be annotated with `@Service`.
-- Use `@Transactional` explicitly.
-- Use `readOnly=true` for read operations.
-- Write operations must be atomic.
-- Throw domain-specific exceptions.
-- Do not catch `RuntimeException` silently.
+-   @Service
+-   @Transactional
+-   readOnly = true for reads
+-   Atomic write operations
+-   Throw domain-specific exceptions
+-   Log responsibly (INFO, WARN, ERROR)
 
----
+------------------------------------------------------------------------
 
-## 7️⃣ Exception Handling
+# 9️⃣ Repository Rules
 
-Implement:
+-   Spring Data JPA
+-   Infrastructure layer only
+-   Avoid EAGER
+-   Use pagination
+-   Avoid N+1
 
-- Custom exceptions:
-  - `ResourceNotFoundException`
-  - `BusinessException`
-  - `ConflictException`
-  - `ValidationException`
+------------------------------------------------------------------------
 
-- Global handler using `@RestControllerAdvice`
+# 🔟 Exception Handling
 
-Standard error response format:
+Custom exceptions: - ResourceNotFoundException - BusinessException -
+ConflictException - ValidationException
 
-```json
-{
-  "timestamp": "2024-01-01T12:00:00",
-  "status": 400,
-  "error": "Bad Request",
-  "message": "Validation failed",
-  "path": "/api/v1/resource"
-}
-```
+Global handler must return:
 
-Never return stack traces in production responses.
+    {
+      "timestamp": "2024-01-01T12:00:00",
+      "status": 400,
+      "error": "Bad Request",
+      "message": "Validation failed",
+      "path": "/api/v1/resource"
+    }
 
----
+No stack traces in responses.
 
-## 8️⃣ Logging Standards
+------------------------------------------------------------------------
 
-- Use SLF4J (`log.info`, `log.warn`, `log.error`)
-- Log key operations at INFO
-- Log business rule violations at WARN
-- Log unexpected exceptions at ERROR
-- Never log passwords or sensitive data
+# 1️⃣1️⃣ Swagger (Dev Only)
 
----
+-   Enabled only in profile `dev`
+-   URL: http://localhost:8080/swagger-ui.html
+-   Disabled in production
 
-## 9️⃣ Validation Strategy
+------------------------------------------------------------------------
 
-- Validate input with Jakarta Validation annotations.
-- Re-check critical business constraints in Service/Domain.
-- Fail fast.
-- Return structured validation errors.
+# 1️⃣2️⃣ H2 (Dev Only)
 
----
+-   URL: http://localhost:8080/h2-console
+-   jdbc:h2:mem:devdb
+-   username: devuser
+-   password: devpass
+-   Disabled outside dev
 
-## 🔟 Database & Performance Rules
+------------------------------------------------------------------------
 
-- Disable open-in-view.
-- Avoid N+1 problems.
-- Use pagination for list endpoints.
-- Use `@EntityGraph` if needed.
-- Always index searchable fields.
-- Avoid unnecessary database roundtrips.
+# 1️⃣3️⃣ Validation Strategy
 
----
+-   Validate at DTO level
+-   Re-check business rules in service/domain
+-   Fail fast
+-   Structured errors
 
-## 11️⃣ Security Readiness
+------------------------------------------------------------------------
 
-- Prepare structure to support JWT later.
-- Leave placeholders for security configuration.
-- Do not implement authentication unless explicitly requested.
+# 1️⃣4️⃣ Database Rules
 
----
+-   open-in-view = false
+-   Index searchable fields
+-   Mandatory pagination
+-   Avoid unnecessary round trips
 
-## 12️⃣ Testing Expectations
+------------------------------------------------------------------------
 
-Generate:
+# 1️⃣5️⃣ Security Readiness
 
-- Unit tests for Service layer (Mockito + JUnit 5)
-- Integration tests for controllers (MockMvc)
+-   Prepare config placeholder
+-   Whitelist swagger & H2 for dev
+-   No JWT unless requested
 
-Must cover:
-- Happy path
-- Validation failures
-- Not found cases
-- Conflict scenarios
+------------------------------------------------------------------------
 
-Use:
-- JUnit 5
-- Mockito
-- AssertJ
+# 1️⃣6️⃣ Testing Standards
 
----
+Unit tests: - Service layer - Mockito + JUnit 5 - AssertJ - Cover happy
+path + failures
 
-## 13️⃣ Code Quality
+Integration tests: - MockMvc - Validate HTTP status codes
 
-- Use Java 21 features where appropriate.
-- Use records for immutable DTOs.
-- Follow SOLID principles.
-- Avoid magic strings and numbers.
-- Keep methods short and cohesive.
-- Use meaningful naming.
-- Prefer immutability.
-- Use `final` for dependencies.
+------------------------------------------------------------------------
 
----
+# 1️⃣7️⃣ Coverage Rules
 
-## 14️⃣ Mandatory Generation Workflow
+JaCoCo minimum: - LINE \>= 80%
 
-When generating a CRUD resource, Copilot must:
+Build must fail if below threshold.
 
-1. Create Domain Entity
-2. Create Request DTOs
-3. Create Response DTO
-4. Create Repository
-5. Create Service interface
-6. Create Service implementation
-7. Create Controller
-8. Create Custom Exceptions
-9. Create Global Exception Handler
-10. Add validation annotations
-11. Add proper transactional annotations
-12. Add example unit test
+Exclude: - dto - config - exception handler - mapper
 
-Never generate minimal example code.
-Never generate logic inside controller.
-Always aim for production-grade structure.
+CI command:
 
----
+    mvn clean verify
 
-## 📌 How to Indicate the Table You Want
+------------------------------------------------------------------------
 
-When requesting Copilot to generate a CRUD resource, provide a prompt like:
+# 1️⃣8️⃣ Profile Management & Startup
 
-```
-Generate a full CRUD for the table "products" with the following columns:
-- id (UUID, primary key)
-- name (String, not null, max 100)
-- description (String, max 500)
-- price (BigDecimal, not null, min 0)
-- stock (Integer, not null, min 0)
-- created_at (LocalDateTime, auto-generated)
-- updated_at (LocalDateTime, auto-updated)
+Supported profiles: - dev - test - prod
 
-Follow the enterprise guidelines in copilot-instructions.md.
-```
+Configuration files:
 
-You can adapt the table name, columns, types, and constraints to match your needs.
-Copilot will use these guidelines to generate the full architecture for that entity.
+    src/main/resources/
+     ├── application.yml
+     ├── application-dev.yml
+     ├── application-test.yml
+     └── application-prod.yml
+
+Base (application.yml): - PostgreSQL - Swagger disabled - H2 disabled -
+ddl-auto = validate - open-in-view = false
+
+Run with profiles:
+
+DEV:
+
+    mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+TEST:
+
+    mvn spring-boot:run -Dspring-boot.run.profiles=test
+
+PROD:
+
+    mvn spring-boot:run -Dspring-boot.run.profiles=prod
+
+Or:
+
+    java -jar app.jar --spring.profiles.active=prod
+
+Note: Use `spring.profiles.active` --- NOT `-Dprofile=dev`.
+
+Optional Maven shortcut:
+
+    mvn spring-boot:run -Pdev
+
+------------------------------------------------------------------------
+
+# 1️⃣9️⃣ Mandatory CRUD Generation Workflow
+
+1.  Domain Entity
+2.  Request DTOs
+3.  Response DTO
+4.  Repository
+5.  Mapper
+6.  Service Interface
+7.  Service Implementation
+8.  Controller
+9.  Exceptions
+10. Global Handler
+11. Tests
+12. Coverage enforcement
+
+Never generate minimal example code. Never mix architectural layers.
