@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record ApiProperties(
         String basePath,
         String helloPath,
-        String counterpartyRiskProfilesPath
+        String counterpartyRiskProfilesPath,
+        String transferenciasPath
 ) {
 }

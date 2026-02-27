@@ -15,6 +15,7 @@ api:
   base-path: /api/v1
   hello-path: /hello
   counterparty-risk-profiles-path: /counterparty-risk-profiles
+  transferencias-path: /transferencias
   version:
     header-name: X-API-Version
     default-version: "1"
