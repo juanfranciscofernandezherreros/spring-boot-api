@@ -24,7 +24,8 @@ public record CreateCounterpartyRiskProfileRequest(
         BigDecimal riskScore,
 
         @DecimalMin(value = "0.00", message = "Exposure limit must not be negative")
-        @Digits(integer = 16, fraction = 2, message = "Exposure limit must have at most 16 integer and 2 fractional digits")
+        @Digits(integer = 16, fraction = 2,
+                message = "Exposure limit must have at most 16 integer and 2 fractional digits")
         BigDecimal exposureLimit
 ) {
 }
