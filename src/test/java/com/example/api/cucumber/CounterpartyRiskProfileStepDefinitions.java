@@ -1,12 +1,14 @@
 package com.example.api.cucumber;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 public class CounterpartyRiskProfileStepDefinitions {
@@ -16,6 +18,8 @@ public class CounterpartyRiskProfileStepDefinitions {
 
     @Autowired
     private ScenarioContext scenarioContext;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @When("the client sends a POST to {string} with body:")
     public void theClientSendsPostWithBody(String url, String body) throws Exception {
@@ -28,6 +32,7 @@ public class CounterpartyRiskProfileStepDefinitions {
     @And("the response body should contain {string} with value {string}")
     public void theResponseBodyShouldContainWithValue(String field, String value) throws Exception {
         String responseBody = scenarioContext.getLastResult().getResponse().getContentAsString();
-        assertTrue(responseBody.contains("\"" + field + "\":\"" + value + "\""));
+        JsonNode jsonNode = objectMapper.readTree(responseBody);
+        assertEquals(value, jsonNode.get(field).asText());
     }
 }
