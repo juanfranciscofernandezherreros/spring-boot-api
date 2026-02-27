@@ -9,7 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
                                                                 HttpServletRequest request) {
         log.warn("Resource not found: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
+                Instant.now(),
                 HttpStatus.NOT_FOUND.value(),
                 HttpStatus.NOT_FOUND.getReasonPhrase(),
                 ex.getMessage(),
@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
                                                         HttpServletRequest request) {
         log.warn("Conflict: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
+                Instant.now(),
                 HttpStatus.CONFLICT.value(),
                 HttpStatus.CONFLICT.getReasonPhrase(),
                 ex.getMessage(),
@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
                                                         HttpServletRequest request) {
         log.warn("Business rule violation: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
+                Instant.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 ex.getMessage(),
@@ -63,7 +63,7 @@ public class GlobalExceptionHandler {
                                                                    HttpServletRequest request) {
         log.warn("Validation error: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
+                Instant.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 ex.getMessage(),
@@ -80,10 +80,24 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
         log.warn("Validation failed: {}", message);
         ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
+                Instant.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 message,
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(UnsupportedVersionException.class)
+    public ResponseEntity<ErrorResponse> handleUnsupportedVersion(UnsupportedVersionException ex,
+                                                                  HttpServletRequest request) {
+        log.warn("Unsupported API version: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -94,7 +108,7 @@ public class GlobalExceptionHandler {
                                                        HttpServletRequest request) {
         log.error("Unexpected error: {}", ex.getMessage(), ex);
         ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
+                Instant.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
                 "An unexpected error occurred",

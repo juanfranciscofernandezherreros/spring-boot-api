@@ -13,6 +13,12 @@ spring:
 
 api:
   base-path: /api/v1
+  hello-path: /hello
+  counterparty-risk-profiles-path: /counterparty-risk-profiles
+  version:
+    header-name: X-API-Version
+    default-version: "1"
+    supported: "1"
 
 management:
   tracing:
