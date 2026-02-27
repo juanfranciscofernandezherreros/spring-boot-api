@@ -1,32 +1,59 @@
-# 🏦 Copilot Enterprise Guidelines -- Spring Boot 3
+# 🏦 COPILOT ENTERPRISE SYSTEM PROMPT
 
-# Corporate Strict Edition v7
+# Spring Boot 3 --- Corporate Ultra Strict Mode
 
-Generated on: 2026-02-27T12:29:12 UTC
+## 🔴 GLOBAL DIRECTIVE (NON-NEGOTIABLE)
 
-  -----------------------------------------------------------------------
-  \# 🎯 OBJECTIVE
-  -----------------------------------------------------------------------
-  \# 1️⃣ TECH STACK
+You are generating enterprise-grade Spring Boot 3 applications.
 
-  Mandatory:
+You MUST:
 
-  \- Java 21 - Spring Boot 3.x - Spring Web (MVC synchronous only) -
-  Spring Data JPA - Jakarta Validation - PostgreSQL (prod + integration
-  tests) - H2 (dev only) - Lombok (controlled usage only) - MapStruct -
-  Micrometer Tracing - Zipkin - JaCoCo (\>= 85% LINE, \>= 80% BRANCH
-  mandatory) - JUnit 5 - Mockito - AssertJ - Testcontainers (MANDATORY) -
-  Cucumber (BDD mandatory) - Maven - Checkstyle - SpotBugs
+-   Follow strict Clean Architecture.
+-   Generate production-ready code only.
+-   Never generate tutorial-style shortcuts.
+-   Never mix architectural layers.
+-   Never use inline strings.
+-   Never use static helpers.
+-   Never skip tests.
+-   Never skip versioning.
+-   Never expose entities.
+-   Never use @Value.
+-   Never disable tracing.
+-   Never generate incomplete code.
 
-  Forbidden:
+If any rule conflicts, choose the STRICTEST interpretation.
 
-  \- WebFlux - In-memory DB for integration tests - Deprecated Spring
-  APIs
-  -----------------------------------------------------------------------
+------------------------------------------------------------------------
 
-# 2️⃣ ARCHITECTURE (STRICT CLEAN ARCHITECTURE)
+# 1️⃣ MANDATORY TECH STACK
 
-Package structure mandatory:
+-   Java 21
+-   Spring Boot 3.x
+-   Spring Web (MVC synchronous only)
+-   Spring Data JPA
+-   Jakarta Validation
+-   PostgreSQL
+-   H2 (dev only)
+-   Lombok (restricted)
+-   MapStruct
+-   Micrometer Tracing
+-   Zipkin
+-   Testcontainers (mandatory for integration tests)
+-   Cucumber BDD
+-   JaCoCo (LINE ≥ 85%, BRANCH ≥ 80%)
+-   Maven
+
+Forbidden:
+
+-   WebFlux
+-   In-memory DB for integration tests
+-   Deprecated APIs
+
+------------------------------------------------------------------------
+
+# 2️⃣ ARCHITECTURE RULES (STRICT CLEAN ARCHITECTURE)
+
+Mandatory package structure:
 
 com.company.project ├── api │ ├── controller │ ├── version │ └──
 resolver ├── application │ ├── service │ ├── mapper │ └── aspect ├──
@@ -35,81 +62,220 @@ domain ├── infrastructure ├── dto ├── config ├── tracing
 
 Rules:
 
--   Controllers never access repositories directly.
--   No cross-layer dependencies.
+-   Controllers never access repositories.
+-   Services contain business logic.
 -   Domain enforces invariants.
+-   No cross-layer dependencies.
 -   Constructor injection only.
 -   No field injection.
 -   No cyclic dependencies.
--   No business logic in controllers.
--   No entity returned directly.
+-   No entities returned externally.
 
-  -----------------------------------------------------------------------
-  \# 3️⃣ BEAN-ONLY POLICY
-  -----------------------------------------------------------------------
-  \# 4️⃣ STRING POLICY
+------------------------------------------------------------------------
 
-  Forbidden:
+# 3️⃣ BEAN-ONLY POLICY
 
-  \- Inline endpoint paths - Inline header names - Inline error
-  messages - Magic numbers - Hardcoded constants
+Forbidden:
 
-  All reusable values must be provided via:
+-   static classes
+-   static helpers
+-   static constants
+-   hardcoded endpoint definitions
 
-  \- @ConfigurationProperties - Injected Beans
-  -----------------------------------------------------------------------
+All reusable values must be encapsulated in Spring-managed Beans and
+injected.
 
-# 5️⃣ CONFIGURATION POLICY
+------------------------------------------------------------------------
+
+# 4️⃣ STRING & CONSTANTS POLICY
+
+Forbidden:
+
+-   Inline endpoint paths
+-   Inline header names
+-   Inline error messages
+-   Magic strings
+-   Magic numbers
+
+All reusable values must be provided via injected Beans or
+@ConfigurationProperties.
+
+------------------------------------------------------------------------
+
+# 5️⃣ CONFIGURATION POLICY (STRICT)
 
 Mandatory:
 
 -   @ConfigurationProperties
 -   @ConfigurationPropertiesScan
--   Immutable record-based configs
+-   Immutable record-based configuration
 
 Forbidden:
 
 -   @Value
--   Direct Environment usage outside config package
+-   Direct Environment access outside config package
+-   Hardcoded configuration values
 
-  -----------------------------------------------------------------------
-  \# 6️⃣ NAMED BOOLEAN RULE
-  -----------------------------------------------------------------------
-  \# 7️⃣ LOGGING STANDARD
+------------------------------------------------------------------------
 
-  Mandatory:
+# 6️⃣ DOMAIN MODEL RULES
 
-  \- Structured JSON logs - TraceId and SpanId in ALL logs - SLF4J +
-  @Slf4j - No sensitive data logging - No debug logging in production -
-  No manual duplicated logging in services (use AOP)
-  -----------------------------------------------------------------------
+-   UUID as primary key
+-   Explicit @Table
+-   No public setters
+-   No @Data
+-   Enforce invariants in constructor/methods
+-   Avoid anemic domain model
+-   Timestamps in UTC
+-   Use Instant or OffsetDateTime (UTC)
 
-# 8️⃣ AOP REQUIREMENT
+------------------------------------------------------------------------
 
-Mandatory Aspects:
+# 7️⃣ DTO RULES
+
+-   Never expose entities
+-   CreateRequest DTO
+-   UpdateRequest DTO
+-   Response DTO
+-   Use Java records
+-   Jakarta Validation mandatory
+-   Validation messages must not be inline
+
+------------------------------------------------------------------------
+
+# 8️⃣ MAPSTRUCT RULES
+
+-   componentModel = "spring"
+-   Explicit mappings
+-   @MappingTarget for updates
+-   Located in application.mapper
+
+------------------------------------------------------------------------
+
+# 9️⃣ SERVICE RULES
+
+-   @Service
+-   @Transactional
+-   readOnly = true for reads
+-   Atomic write operations
+-   Throw domain-specific exceptions
+-   No inline strings
+-   No duplicated logging (AOP handles logging)
+
+------------------------------------------------------------------------
+
+# 🔟 DATABASE RULES
+
+-   spring.jpa.open-in-view=false
+-   UUID primary keys
+-   Explicit indexes
+-   No FetchType.EAGER by default
+-   No N+1 queries
+-   Pagination mandatory
+-   PostgreSQL required for integration tests
+-   Testcontainers mandatory (postgres:16-alpine)
+
+------------------------------------------------------------------------
+
+# 1️⃣1️⃣ REST & VERSIONING RULES
+
+Standard REST:
+
+GET /api/v1/{entity} GET /api/v1/{entity}/{id} POST /api/v1/{entity} PUT
+/api/v1/{entity}/{id} DELETE /api/v1/{entity}/{id}
+
+Requirements:
+
+-   ResponseEntity mandatory
+-   Proper HTTP status codes
+-   No internal exception leakage
+-   Header-based versioning mandatory
+-   Dedicated version resolver
+-   All endpoints fully tested per version
+
+------------------------------------------------------------------------
+
+# 1️⃣2️⃣ EXCEPTION HANDLING
+
+Mandatory custom exceptions:
+
+-   ResourceNotFoundException
+-   BusinessException
+-   ConflictException
+-   ValidationException
+
+Global error format:
+
+{ "timestamp": "...", "status": 400, "error": "...", "message": "...",
+"path": "..." }
+
+-   No stack traces exposed
+-   No inline messages
+
+------------------------------------------------------------------------
+
+# 1️⃣3️⃣ LOGGING & AOP
+
+Mandatory:
+
+-   Structured JSON logs
+-   TraceId and SpanId in all logs
+-   SLF4J + @Slf4j
+-   No debug logs in production
+-   No sensitive data logged
+
+Mandatory aspects:
 
 -   LoggingAspect
 -   ExecutionTimeAspect
 -   ExceptionHandlingAspect
 -   CorrelationIdAspect
 
-No service may manually implement logging logic that duplicates aspects.
+No manual duplicated logging in services.
 
-  -----------------------------------------------------------------------
-  \# 9️⃣ DISTRIBUTED TRACING
-  -----------------------------------------------------------------------
-  \# 🔟 DATABASE RULES
+------------------------------------------------------------------------
 
-  Mandatory:
+# 1️⃣4️⃣ DISTRIBUTED TRACING
 
-  \- spring.jpa.open-in-view=false - UUID primary keys - Explicit DB
-  indexes - No FetchType.EAGER by default - No N+1 queries - Pagination
-  mandatory - All timestamps in UTC - Use Instant or OffsetDateTime (UTC)
+-   Micrometer Tracing
+-   Zipkin enabled in all environments
+-   W3C propagation enabled
+-   Tracing must never be disabled in prod
 
-  Integration tests MUST use real PostgreSQL container.
-  -----------------------------------------------------------------------
+Default dev Zipkin URL:
 
-# 1️⃣1️⃣ PROFILE STRATEGY
+http://localhost:9411
+
+------------------------------------------------------------------------
+
+# 1️⃣5️⃣ TEST STRATEGY (MANDATORY)
+
+Testing is NOT optional.
+
+Each endpoint must have:
+
+1.  Unit Tests
+2.  Integration Tests (Testcontainers)
+3.  BDD Tests (Cucumber)
+
+------------------------------------------------------------------------
+
+# 1️⃣6️⃣ COVERAGE POLICY
+
+Minimum:
+
+-   LINE ≥ 85%
+-   BRANCH ≥ 80%
+
+Build must fail if below threshold.
+
+Command:
+
+mvn clean verify
+
+------------------------------------------------------------------------
+
+# 1️⃣7️⃣ PROFILE STRATEGY
 
 Profiles:
 
@@ -121,131 +287,44 @@ Profiles:
 
 Rules:
 
-dev → H2 + Swagger prod → PostgreSQL only test/int/qa → PostgreSQL
+-   dev → H2 + Swagger enabled
+-   test/int/qa → PostgreSQL
+-   prod → PostgreSQL only
+-   Swagger disabled outside dev
+-   H2 disabled outside dev
 
-Run dev:
+Use only:
 
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-
-  -----------------------------------------------------------------------
-  \# 1️⃣2️⃣ VERSIONING POLICY (MANDATORY)
-  -----------------------------------------------------------------------
-  \# 1️⃣3️⃣ TEST STRATEGY (STRICT MODE)
-
-  Testing is NOT optional.
-
-  Every endpoint must include:
-
-  1\. Unit Tests 2. Integration Tests (Testcontainers) 3. BDD Tests
-  (Cucumber)
-  -----------------------------------------------------------------------
-
-## 1️⃣ Unit Tests (MANDATORY)
-
-Coverage:
-
--   Services
--   Business rules
--   Domain invariants
--   Exception flows
--   Version resolver
--   Aspects
--   Edge cases
-
-Tools:
-
--   JUnit 5
--   Mockito
--   AssertJ
-
-  -----------------------------------------------------------------------
-  \## 2️⃣ Integration Tests (MANDATORY)
-  -----------------------------------------------------------------------
-  \## 3️⃣ CUCUMBER BDD (MANDATORY)
-
-  Dependencies:
-
-  \- cucumber-java - cucumber-spring - cucumber-junit-platform-engine
-
-  Rules:
-
-  \- Feature files under src/test/resources/features - Steps under test
-  package - Full Spring context bootstrapped - No duplicated steps
-
-  Each endpoint requires scenarios for:
-
-  \- Happy path - Validation failure - Version test - Unsupported
-  version - Error scenario
-  -----------------------------------------------------------------------
-
-# 1️⃣4️⃣ TESTCONTAINERS POLICY
-
-Mandatory container:
-
-postgres:16-alpine
-
-Must use:
-
--   @DynamicPropertySource
--   No manual property hacks
-
-  -----------------------------------------------------------------------
-  \# 1️⃣5️⃣ COVERAGE POLICY
-  -----------------------------------------------------------------------
-  \# 1️⃣6️⃣ README REQUIREMENTS (MANDATORY)
-
-  README must include:
-
-  1\. Architecture explanation 2. Versioning explanation 3. How to run
-  dev/test/prod 4. H2 console instructions 5. Swagger URL 6. Zipkin URL
-  7. ALL curl commands for EVERY endpoint and version 8. Coverage
-  execution command 9. Testcontainers explanation
-  -----------------------------------------------------------------------
-
-# 1️⃣7️⃣ SECURITY PREPARATION
-
--   JWT-ready structure
--   No credentials committed
--   Sensitive data from environment variables only
--   No authentication unless requested
-
-  -----------------------------------------------------------------------
-  \# 1️⃣8️⃣ QUALITY GATES
-  -----------------------------------------------------------------------
-  \# 1️⃣9️⃣ FORBIDDEN PRACTICES
-
-  \- Static helpers - Inline strings - @Value - Hardcoded endpoints -
-  Business logic in controllers - Returning entities directly - Skipping
-  validation - Using H2 outside dev - Skipping version tests - Generating
-  code without tests
-  -----------------------------------------------------------------------
-
-# 🏁 FINAL SYSTEM CHARACTERISTICS
-
-System must be:
-
--   Clean Architecture compliant
-
--   Bean-only design
-
--   Fully versioned per endpoint
-
--   Header-driven versioning
-
--   Structured JSON logging
-
--   Distributed tracing enabled
-
--   =85% coverage enforced
-
--   Integration-tested with PostgreSQL containers
-
--   BDD-tested with Cucumber
-
--   Enterprise-audit ready
-
--   Production-grade quality enforced
+spring.profiles.active
 
 ------------------------------------------------------------------------
 
-END OF DOCUMENT Corporate Strict Edition v7
+# 🟥 ABSOLUTE FORBIDDEN
+
+-   Static helper classes
+-   Inline strings
+-   @Value injection
+-   Hardcoded endpoints
+-   Business logic in controllers
+-   Returning entities
+-   Using H2 outside dev
+-   Skipping version tests
+-   Skipping coverage enforcement
+-   Generating code without tests
+-   Disabling tracing in production
+
+------------------------------------------------------------------------
+
+# ✅ EXPECTED OUTPUT CHARACTERISTICS
+
+Generated system MUST be:
+
+-   Clean Architecture compliant
+-   Bean-only design
+-   Fully versioned
+-   Fully tested (Unit + Integration + BDD)
+-   Coverage enforced ≥85%
+-   Distributed tracing enabled
+-   Structured JSON logging
+-   Production-ready
+-   Enterprise audit compliant
