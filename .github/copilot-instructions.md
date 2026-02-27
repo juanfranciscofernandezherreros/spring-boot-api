@@ -1,325 +1,265 @@
-# 🚀 Copilot Enterprise Guidelines -- Spring Boot 3 (Synchronous CRUD)
+# 🏦 Copilot Enterprise Guidelines -- Spring Boot 3 (Corporate Strict Edition v6)
 
-Version: v4\
-Generated on: 2026-02-27T12:14:03.154816 UTC
+Generated on: 2026-02-27T12:29:12.461620 UTC
 
 ------------------------------------------------------------------------
 
-# 1️⃣ Target Stack
+# 🎯 OBJECTIVE
+
+Mandatory rules for generating enterprise-grade Spring Boot 3
+applications.
+
+Strict architecture. Strict testing. Strict observability. No shortcuts.
+
+------------------------------------------------------------------------
+
+# 1️⃣ TECH STACK
 
 -   Java 21
 -   Spring Boot 3.x
--   Spring Web (synchronous)
+-   Spring Web (MVC synchronous)
 -   Spring Data JPA
 -   Jakarta Validation
--   PostgreSQL (default)
--   H2 (dev profile only)
--   Lombok
+-   PostgreSQL (prod)
+-   H2 (dev only)
+-   Lombok (controlled usage)
 -   MapStruct
--   JaCoCo (\>= 80% mandatory)
--   JUnit 5 + Mockito + AssertJ
 -   Micrometer Tracing
 -   Zipkin
+-   JaCoCo (\>= 85% LINE, \>= 80% BRANCH mandatory)
+-   JUnit 5
+-   Mockito
+-   AssertJ
+-   **Testcontainers (MANDATORY for integration tests)**
 -   Maven
-
-No tutorial-style shortcuts. Only production-grade architecture.
+-   Checkstyle
+-   SpotBugs
 
 ------------------------------------------------------------------------
 
-# 2️⃣ Clean Architecture
+# 2️⃣ ARCHITECTURE (STRICT CLEAN ARCHITECTURE)
 
-    com.company.project
-     ├── api
-     ├── application
-     │     ├── service
-     │     ├── mapper
-     │     └── aspect
-     ├── domain
-     ├── infrastructure
-     ├── dto
-     ├── exception
-     ├── config
-     └── tracing
+com.company.project ├── api ├── application │ ├── service │ ├── mapper │
+└── aspect ├── domain ├── infrastructure ├── dto ├── config ├── tracing
+├── exception └── bootstrap
 
 Rules:
 
--   Controllers must be thin.
--   No business logic in controllers.
--   All cross-cutting concerns via AOP.
 -   No static utility classes.
--   Everything must be managed as Spring Beans.
+-   No field injection.
+-   Constructor injection only.
+-   Domain enforces invariants.
+-   No cross-layer dependencies.
+-   Controllers never access repositories directly.
 
 ------------------------------------------------------------------------
 
-# 3️⃣ NO STATIC CLASSES (MANDATORY)
+# 3️⃣ BEAN‑ONLY POLICY
 
 Forbidden:
 
--   static utility classes
--   static constants holders
--   static endpoint definitions
--   static configuration access
+-   static constants classes
+-   static helpers
+-   static util methods
 
-Instead:
-
-Create dedicated Spring-managed Beans.
-
-Example:
-
-@Component public class ApiPaths { public String base() { return
-"/api/v1"; } public String products() { return "/products"; } }
-
-All dependencies must be injected.
+All reusable data must be inside Spring-managed Beans.
 
 ------------------------------------------------------------------------
 
-# 4️⃣ STRING & CONSTANTS POLICY
+# 4️⃣ STRING POLICY
 
 -   No inline strings.
--   No magic strings.
+-   No hardcoded endpoint paths.
 -   No hardcoded error messages.
+-   No magic numbers.
 
-All reusable strings must be encapsulated inside Spring Beans:
-
-Examples:
-
--   ApiPathsBean
--   ErrorMessageCatalog
--   ValidationMessageCatalog
--   LoggingMessageCatalog
-
-These must be injected where required.
+All reusable values must be provided through injected Beans.
 
 ------------------------------------------------------------------------
 
-# 5️⃣ NAMED CONDITIONS (IF RULES)
+# 5️⃣ CONFIGURATION POLICY
+
+Mandatory:
+
+-   @ConfigurationProperties
+-   @ConfigurationPropertiesScan
+-   Immutable record-based configs
 
 Forbidden:
 
-if (x != null && x.getStatus().equals("ACTIVE") && x.getAmount() \> 0)
+-   @Value
+-   Direct Environment access outside config package
+
+------------------------------------------------------------------------
+
+# 6️⃣ NAMED BOOLEAN RULE
+
+Extract complex conditions into expressive methods.
+
+Forbidden:
+
+if (x != null && x.getStatus().equals("ACTIVE") && amount \> 0)
 
 Required:
 
-if (isActiveOrderWithPositiveAmount(order))
-
-Rules:
-
--   Complex conditions must be extracted.
--   Boolean methods must have expressive names.
--   No nested complex if-statements.
--   Prefer early returns.
+if (isActiveWithPositiveAmount(order))
 
 ------------------------------------------------------------------------
 
-# 6️⃣ CONFIGURATION PROPERTIES (MANDATORY)
+# 7️⃣ LOGGING STANDARD
 
--   Use @ConfigurationProperties
--   No @Value
--   No direct Environment access
--   No hardcoded values
-
-Example:
-
-@ConfigurationProperties(prefix = "app.datasource") public record
-DatasourceProperties( String url, String username, String password ) { }
-
-Must use:
-
-@ConfigurationPropertiesScan
-
-Properties must be injected via constructor.
+-   Structured JSON logs required
+-   TraceId and SpanId required in all logs
+-   No sensitive data logging
+-   No debug logging in prod
+-   SLF4J + @Slf4j
 
 ------------------------------------------------------------------------
 
-# 7️⃣ LOGGING & TRACING (MANDATORY)
+# 8️⃣ AOP REQUIREMENT
 
--   Use SLF4J.
--   No loggers manually created.
--   Use @Slf4j (Lombok).
--   Log business events at INFO.
--   Log rule violations at WARN.
--   Log unexpected errors at ERROR.
+Mandatory aspects:
 
-------------------------------------------------------------------------
+-   LoggingAspect
+-   ExecutionTimeAspect
+-   ExceptionHandlingAspect
+-   CorrelationIdAspect
 
-# 8️⃣ AOP LOGGING ASPECT (REQUIRED)
-
-All service methods must be traced via Aspect.
-
-Create:
-
-application.aspect.LoggingAspect
-
-Responsibilities:
-
--   Log method entry
--   Log method exit
--   Log execution time
--   Log correlation id
-
-No manual logging in every method.
+No duplicated manual logging in service methods.
 
 ------------------------------------------------------------------------
 
 # 9️⃣ DISTRIBUTED TRACING
 
-Use:
-
--   Micrometer Tracing
--   Zipkin
-
 Mandatory:
 
--   TraceId and SpanId must appear in logs.
--   Propagation headers must be enabled.
--   Dev profile may include local Zipkin.
+-   Micrometer Tracing
+-   Zipkin integration
+-   W3C Trace Context propagation
+-   Tracing enabled in all environments
 
-Zipkin default URL:
+Default Zipkin:
 
 http://localhost:9411
 
-No tracing disabled in prod.
+------------------------------------------------------------------------
+
+# 🔟 DATABASE RULES
+
+-   open-in-view=false
+-   UUID primary keys
+-   Explicit indexes
+-   No EAGER by default
+-   No N+1
+-   Pagination mandatory
+-   All timestamps in UTC
+-   Use Instant or OffsetDateTime (UTC)
 
 ------------------------------------------------------------------------
 
-# 🔟 REST Standards
+# 1️⃣1️⃣ PROFILE STRATEGY
 
-GET /api/v1/{entities} GET /api/v1/{entities}/{id} POST
-/api/v1/{entities} PUT /api/v1/{entities}/{id} DELETE
-/api/v1/{entities}/{id}
+Profiles:
 
-Paths must be provided via injected Bean.
+-   dev
+-   test
+-   int
+-   qa
+-   prod
 
-Always return ResponseEntity. Never expose exceptions.
+dev → H2 + Swagger\
+prod → PostgreSQL only
 
-------------------------------------------------------------------------
-
-# 1️⃣1️⃣ PROFILE MANAGEMENT
-
-Profiles supported: - dev - test - prod
-
-Run DEV:
+Run dev:
 
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
-Run PROD:
+------------------------------------------------------------------------
 
-java -jar app.jar --spring.profiles.active=prod
+# 1️⃣2️⃣ TESTING STRATEGY (STRICT)
 
-Swagger and H2 enabled only in dev.
+## Unit Tests
+
+-   Service layer
+-   Business rules
+-   Exception flows
+-   Edge conditions
+
+## Integration Tests (MANDATORY)
+
+-   @SpringBootTest
+-   Real PostgreSQL via Testcontainers
+-   MockMvc API validation
+-   Full database interaction testing
+
+No in-memory DB for integration tests. Testcontainers required.
 
 ------------------------------------------------------------------------
 
-# 1️⃣2️⃣ README REQUIREMENTS (MANDATORY)
+# 1️⃣3️⃣ COVERAGE POLICY
+
+Minimum:
+
+LINE \>= 85% BRANCH \>= 80%
+
+Excluded from coverage:
+
+-   dto
+-   config
+-   bootstrap
+-   mapper
+
+------------------------------------------------------------------------
+
+# 1️⃣4️⃣ README REQUIREMENTS
 
 README must include:
 
-1.  How to run with dev profile.
-2.  H2 access instructions.
-3.  Swagger URL.
-4.  All curl examples.
-5.  Zipkin instructions.
-6.  Database configuration.
-7.  Test execution.
-8.  Coverage execution.
+-   How to run dev/test/prod
+-   H2 instructions (dev only)
+-   Swagger URL
+-   Zipkin URL
+-   All curl commands
+-   Coverage execution
+-   Testcontainers explanation
 
 ------------------------------------------------------------------------
 
-# 1️⃣3️⃣ CURL EXAMPLES (REQUIRED IN README)
+# 1️⃣5️⃣ SECURITY PREPARATION
 
-Example:
-
-Create:
-
-curl -X POST http://localhost:8080/api/v1/products\
--H "Content-Type: application/json"\
--d '{"name":"Laptop","price":999.99,"stock":10}'
-
-Get all:
-
-curl http://localhost:8080/api/v1/products
-
-Get by id:
-
-curl http://localhost:8080/api/v1/products/{uuid}
-
-Update:
-
-curl -X PUT http://localhost:8080/api/v1/products/{uuid}\
--H "Content-Type: application/json"\
--d '{"name":"Updated","price":899.99,"stock":5}'
-
-Delete:
-
-curl -X DELETE http://localhost:8080/api/v1/products/{uuid}
-
-------------------------------------------------------------------------
-
-# 1️⃣4️⃣ DATABASE RULES
-
--   open-in-view = false
--   Mandatory indexes
--   UUID keys
--   No N+1
--   Pagination required
-
-------------------------------------------------------------------------
-
-# 1️⃣5️⃣ COVERAGE RULES
-
-JaCoCo minimum:
-
-LINE \>= 80%
-
-Build must fail otherwise.
+-   JWT-ready structure
+-   No credentials committed
+-   Sensitive configs via environment variables
+-   No authentication unless requested
 
 ------------------------------------------------------------------------
 
 # 1️⃣6️⃣ FORBIDDEN PRACTICES
 
--   Static helper classes
+-   Static helpers
 -   Inline strings
--   @Value injection
--   Complex inline if statements
+-   @Value
+-   Complex inline conditions
 -   Business logic in controllers
--   EAGER fetch without reason
--   Disabling tracing in prod
+-   Returning entities directly
+-   Skipping validation
 
 ------------------------------------------------------------------------
 
-# 1️⃣7️⃣ MANDATORY CRUD GENERATION WORKFLOW
-
-1.  Domain Entity
-2.  DTOs
-3.  Repository
-4.  Mapper
-5.  Service Interface
-6.  Service Implementation
-7.  Logging Aspect
-8.  ConfigurationProperties classes
-9.  Tracing configuration
-10. Controller (using injected Beans)
-11. Tests
-12. Coverage enforcement
-
-------------------------------------------------------------------------
-
-# ✅ RESULT
-
-Enterprise-level architecture:
+# 🏁 FINAL SYSTEM CHARACTERISTICS
 
 -   Clean architecture
 
--   Bean-only design (no static classes)
+-   Bean-only design
+
+-   Structured JSON logging
 
 -   Distributed tracing enabled
 
--   AOP logging enforced
+-   Strongly typed configuration
 
--   No magic strings
+-   Testcontainers mandatory
 
--   Strong typing configuration
+-   =85% enforced coverage
 
--   =80% coverage required
-
--   CI/CD ready
+-   Enterprise-grade quality standards
