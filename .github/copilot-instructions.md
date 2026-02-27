@@ -1,81 +1,63 @@
-# 🏦 Copilot Enterprise Guidelines -- Spring Boot 3 (Corporate Strict Edition v6)
+# 🏦 Copilot Enterprise Guidelines -- Spring Boot 3
 
-Generated on: 2026-02-27T12:29:12.461620 UTC
+# Corporate Strict Edition v7
 
-------------------------------------------------------------------------
+Generated on: 2026-02-27T12:29:12 UTC
 
-# 🎯 OBJECTIVE
+  -----------------------------------------------------------------------
+  \# 🎯 OBJECTIVE
+  -----------------------------------------------------------------------
+  \# 1️⃣ TECH STACK
 
-Mandatory rules for generating enterprise-grade Spring Boot 3
-applications.
+  Mandatory:
 
-Strict architecture. Strict testing. Strict observability. No shortcuts.
+  \- Java 21 - Spring Boot 3.x - Spring Web (MVC synchronous only) -
+  Spring Data JPA - Jakarta Validation - PostgreSQL (prod + integration
+  tests) - H2 (dev only) - Lombok (controlled usage only) - MapStruct -
+  Micrometer Tracing - Zipkin - JaCoCo (\>= 85% LINE, \>= 80% BRANCH
+  mandatory) - JUnit 5 - Mockito - AssertJ - Testcontainers (MANDATORY) -
+  Cucumber (BDD mandatory) - Maven - Checkstyle - SpotBugs
 
-------------------------------------------------------------------------
+  Forbidden:
 
-# 1️⃣ TECH STACK
-
--   Java 21
--   Spring Boot 3.x
--   Spring Web (MVC synchronous)
--   Spring Data JPA
--   Jakarta Validation
--   PostgreSQL (prod)
--   H2 (dev only)
--   Lombok (controlled usage)
--   MapStruct
--   Micrometer Tracing
--   Zipkin
--   JaCoCo (\>= 85% LINE, \>= 80% BRANCH mandatory)
--   JUnit 5
--   Mockito
--   AssertJ
--   **Testcontainers (MANDATORY for integration tests)**
--   Maven
--   Checkstyle
--   SpotBugs
-
-------------------------------------------------------------------------
+  \- WebFlux - In-memory DB for integration tests - Deprecated Spring
+  APIs
+  -----------------------------------------------------------------------
 
 # 2️⃣ ARCHITECTURE (STRICT CLEAN ARCHITECTURE)
 
-com.company.project ├── api ├── application │ ├── service │ ├── mapper │
-└── aspect ├── domain ├── infrastructure ├── dto ├── config ├── tracing
-├── exception └── bootstrap
+Package structure mandatory:
+
+com.company.project ├── api │ ├── controller │ ├── version │ └──
+resolver ├── application │ ├── service │ ├── mapper │ └── aspect ├──
+domain ├── infrastructure ├── dto ├── config ├── tracing ├── exception
+└── bootstrap
 
 Rules:
 
--   No static utility classes.
--   No field injection.
--   Constructor injection only.
--   Domain enforces invariants.
--   No cross-layer dependencies.
 -   Controllers never access repositories directly.
+-   No cross-layer dependencies.
+-   Domain enforces invariants.
+-   Constructor injection only.
+-   No field injection.
+-   No cyclic dependencies.
+-   No business logic in controllers.
+-   No entity returned directly.
 
-------------------------------------------------------------------------
+  -----------------------------------------------------------------------
+  \# 3️⃣ BEAN-ONLY POLICY
+  -----------------------------------------------------------------------
+  \# 4️⃣ STRING POLICY
 
-# 3️⃣ BEAN‑ONLY POLICY
+  Forbidden:
 
-Forbidden:
+  \- Inline endpoint paths - Inline header names - Inline error
+  messages - Magic numbers - Hardcoded constants
 
--   static constants classes
--   static helpers
--   static util methods
+  All reusable values must be provided via:
 
-All reusable data must be inside Spring-managed Beans.
-
-------------------------------------------------------------------------
-
-# 4️⃣ STRING POLICY
-
--   No inline strings.
--   No hardcoded endpoint paths.
--   No hardcoded error messages.
--   No magic numbers.
-
-All reusable values must be provided through injected Beans.
-
-------------------------------------------------------------------------
+  \- @ConfigurationProperties - Injected Beans
+  -----------------------------------------------------------------------
 
 # 5️⃣ CONFIGURATION POLICY
 
@@ -88,74 +70,44 @@ Mandatory:
 Forbidden:
 
 -   @Value
--   Direct Environment access outside config package
+-   Direct Environment usage outside config package
 
-------------------------------------------------------------------------
+  -----------------------------------------------------------------------
+  \# 6️⃣ NAMED BOOLEAN RULE
+  -----------------------------------------------------------------------
+  \# 7️⃣ LOGGING STANDARD
 
-# 6️⃣ NAMED BOOLEAN RULE
+  Mandatory:
 
-Extract complex conditions into expressive methods.
-
-Forbidden:
-
-if (x != null && x.getStatus().equals("ACTIVE") && amount \> 0)
-
-Required:
-
-if (isActiveWithPositiveAmount(order))
-
-------------------------------------------------------------------------
-
-# 7️⃣ LOGGING STANDARD
-
--   Structured JSON logs required
--   TraceId and SpanId required in all logs
--   No sensitive data logging
--   No debug logging in prod
--   SLF4J + @Slf4j
-
-------------------------------------------------------------------------
+  \- Structured JSON logs - TraceId and SpanId in ALL logs - SLF4J +
+  @Slf4j - No sensitive data logging - No debug logging in production -
+  No manual duplicated logging in services (use AOP)
+  -----------------------------------------------------------------------
 
 # 8️⃣ AOP REQUIREMENT
 
-Mandatory aspects:
+Mandatory Aspects:
 
 -   LoggingAspect
 -   ExecutionTimeAspect
 -   ExceptionHandlingAspect
 -   CorrelationIdAspect
 
-No duplicated manual logging in service methods.
+No service may manually implement logging logic that duplicates aspects.
 
-------------------------------------------------------------------------
+  -----------------------------------------------------------------------
+  \# 9️⃣ DISTRIBUTED TRACING
+  -----------------------------------------------------------------------
+  \# 🔟 DATABASE RULES
 
-# 9️⃣ DISTRIBUTED TRACING
+  Mandatory:
 
-Mandatory:
+  \- spring.jpa.open-in-view=false - UUID primary keys - Explicit DB
+  indexes - No FetchType.EAGER by default - No N+1 queries - Pagination
+  mandatory - All timestamps in UTC - Use Instant or OffsetDateTime (UTC)
 
--   Micrometer Tracing
--   Zipkin integration
--   W3C Trace Context propagation
--   Tracing enabled in all environments
-
-Default Zipkin:
-
-http://localhost:9411
-
-------------------------------------------------------------------------
-
-# 🔟 DATABASE RULES
-
--   open-in-view=false
--   UUID primary keys
--   Explicit indexes
--   No EAGER by default
--   No N+1
--   Pagination mandatory
--   All timestamps in UTC
--   Use Instant or OffsetDateTime (UTC)
-
-------------------------------------------------------------------------
+  Integration tests MUST use real PostgreSQL container.
+  -----------------------------------------------------------------------
 
 # 1️⃣1️⃣ PROFILE STRATEGY
 
@@ -167,99 +119,133 @@ Profiles:
 -   qa
 -   prod
 
-dev → H2 + Swagger\
-prod → PostgreSQL only
+Rules:
+
+dev → H2 + Swagger prod → PostgreSQL only test/int/qa → PostgreSQL
 
 Run dev:
 
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
-------------------------------------------------------------------------
+  -----------------------------------------------------------------------
+  \# 1️⃣2️⃣ VERSIONING POLICY (MANDATORY)
+  -----------------------------------------------------------------------
+  \# 1️⃣3️⃣ TEST STRATEGY (STRICT MODE)
 
-# 1️⃣2️⃣ TESTING STRATEGY (STRICT)
+  Testing is NOT optional.
 
-## Unit Tests
+  Every endpoint must include:
 
--   Service layer
+  1\. Unit Tests 2. Integration Tests (Testcontainers) 3. BDD Tests
+  (Cucumber)
+  -----------------------------------------------------------------------
+
+## 1️⃣ Unit Tests (MANDATORY)
+
+Coverage:
+
+-   Services
 -   Business rules
+-   Domain invariants
 -   Exception flows
--   Edge conditions
+-   Version resolver
+-   Aspects
+-   Edge cases
 
-## Integration Tests (MANDATORY)
+Tools:
 
--   @SpringBootTest
--   Real PostgreSQL via Testcontainers
--   MockMvc API validation
--   Full database interaction testing
+-   JUnit 5
+-   Mockito
+-   AssertJ
 
-No in-memory DB for integration tests. Testcontainers required.
+  -----------------------------------------------------------------------
+  \## 2️⃣ Integration Tests (MANDATORY)
+  -----------------------------------------------------------------------
+  \## 3️⃣ CUCUMBER BDD (MANDATORY)
 
-------------------------------------------------------------------------
+  Dependencies:
 
-# 1️⃣3️⃣ COVERAGE POLICY
+  \- cucumber-java - cucumber-spring - cucumber-junit-platform-engine
 
-Minimum:
+  Rules:
 
-LINE \>= 85% BRANCH \>= 80%
+  \- Feature files under src/test/resources/features - Steps under test
+  package - Full Spring context bootstrapped - No duplicated steps
 
-Excluded from coverage:
+  Each endpoint requires scenarios for:
 
--   dto
--   config
--   bootstrap
--   mapper
+  \- Happy path - Validation failure - Version test - Unsupported
+  version - Error scenario
+  -----------------------------------------------------------------------
 
-------------------------------------------------------------------------
+# 1️⃣4️⃣ TESTCONTAINERS POLICY
 
-# 1️⃣4️⃣ README REQUIREMENTS
+Mandatory container:
 
-README must include:
+postgres:16-alpine
 
--   How to run dev/test/prod
--   H2 instructions (dev only)
--   Swagger URL
--   Zipkin URL
--   All curl commands
--   Coverage execution
--   Testcontainers explanation
+Must use:
 
-------------------------------------------------------------------------
+-   @DynamicPropertySource
+-   No manual property hacks
 
-# 1️⃣5️⃣ SECURITY PREPARATION
+  -----------------------------------------------------------------------
+  \# 1️⃣5️⃣ COVERAGE POLICY
+  -----------------------------------------------------------------------
+  \# 1️⃣6️⃣ README REQUIREMENTS (MANDATORY)
+
+  README must include:
+
+  1\. Architecture explanation 2. Versioning explanation 3. How to run
+  dev/test/prod 4. H2 console instructions 5. Swagger URL 6. Zipkin URL
+  7. ALL curl commands for EVERY endpoint and version 8. Coverage
+  execution command 9. Testcontainers explanation
+  -----------------------------------------------------------------------
+
+# 1️⃣7️⃣ SECURITY PREPARATION
 
 -   JWT-ready structure
 -   No credentials committed
--   Sensitive configs via environment variables
+-   Sensitive data from environment variables only
 -   No authentication unless requested
 
-------------------------------------------------------------------------
+  -----------------------------------------------------------------------
+  \# 1️⃣8️⃣ QUALITY GATES
+  -----------------------------------------------------------------------
+  \# 1️⃣9️⃣ FORBIDDEN PRACTICES
 
-# 1️⃣6️⃣ FORBIDDEN PRACTICES
-
--   Static helpers
--   Inline strings
--   @Value
--   Complex inline conditions
--   Business logic in controllers
--   Returning entities directly
--   Skipping validation
-
-------------------------------------------------------------------------
+  \- Static helpers - Inline strings - @Value - Hardcoded endpoints -
+  Business logic in controllers - Returning entities directly - Skipping
+  validation - Using H2 outside dev - Skipping version tests - Generating
+  code without tests
+  -----------------------------------------------------------------------
 
 # 🏁 FINAL SYSTEM CHARACTERISTICS
 
--   Clean architecture
+System must be:
+
+-   Clean Architecture compliant
 
 -   Bean-only design
+
+-   Fully versioned per endpoint
+
+-   Header-driven versioning
 
 -   Structured JSON logging
 
 -   Distributed tracing enabled
 
--   Strongly typed configuration
+-   =85% coverage enforced
 
--   Testcontainers mandatory
+-   Integration-tested with PostgreSQL containers
 
--   =85% enforced coverage
+-   BDD-tested with Cucumber
 
--   Enterprise-grade quality standards
+-   Enterprise-audit ready
+
+-   Production-grade quality enforced
+
+------------------------------------------------------------------------
+
+END OF DOCUMENT Corporate Strict Edition v7
