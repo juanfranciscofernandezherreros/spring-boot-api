@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("${api.base-path}/counterparty-risk-profiles")
+@RequestMapping("${api.base-path}${api.counterparty-risk-profiles-path}")
 public class CounterpartyRiskProfileController {
 
     private final CounterpartyRiskProfileService service;
