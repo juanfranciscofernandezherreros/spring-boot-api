@@ -18,6 +18,7 @@ api:
   hello-path: /hello
   counterparty-risk-profiles-path: /counterparty-risk-profiles
   transferencias-path: /transferencias
+  cryptocurrencies-path: /cryptocurrencies
   version:
     header-name: X-API-Version
     default-version: "1"
