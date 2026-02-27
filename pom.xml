@@ -169,6 +169,7 @@
                         <exclude>**/config/**</exclude>
                         <exclude>**/exception/GlobalExceptionHandler**</exclude>
                         <exclude>**/application/mapper/**</exclude>
+                        <exclude>**/application/aspect/**</exclude>
                         <exclude>**/bootstrap/**</exclude>
                     </excludes>
                 </configuration>
