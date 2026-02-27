@@ -1,8 +1,8 @@
 package com.example.api.application;
 
-import com.example.api.dto.CounterpartyRiskProfileResponse;
-import com.example.api.dto.CreateCounterpartyRiskProfileRequest;
-import com.example.api.dto.UpdateCounterpartyRiskProfileRequest;
+import com.example.api.dto.request.CreateCounterpartyRiskProfileRequest;
+import com.example.api.dto.request.UpdateCounterpartyRiskProfileRequest;
+import com.example.api.dto.response.CounterpartyRiskProfileResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

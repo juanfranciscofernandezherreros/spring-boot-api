@@ -1,9 +1,10 @@
 package com.example.api.application;
 
 import com.example.api.domain.CounterpartyRiskProfile;
-import com.example.api.dto.CounterpartyRiskProfileResponse;
-import com.example.api.dto.CreateCounterpartyRiskProfileRequest;
-import com.example.api.dto.UpdateCounterpartyRiskProfileRequest;
+import com.example.api.application.mapper.CounterpartyRiskProfileMapper;
+import com.example.api.dto.request.CreateCounterpartyRiskProfileRequest;
+import com.example.api.dto.request.UpdateCounterpartyRiskProfileRequest;
+import com.example.api.dto.response.CounterpartyRiskProfileResponse;
 import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.infrastructure.CounterpartyRiskProfileRepository;
 import org.junit.jupiter.api.Test;
@@ -32,8 +33,17 @@ class CounterpartyRiskProfileServiceImplTest {
     @Mock
     private CounterpartyRiskProfileRepository repository;
 
+    @Mock
+    private CounterpartyRiskProfileMapper mapper;
+
     @InjectMocks
     private CounterpartyRiskProfileServiceImpl service;
+
+    private CounterpartyRiskProfileResponse sampleResponse() {
+        return new CounterpartyRiskProfileResponse(
+                null, "Acme Corp", "USA", "AA+",
+                new BigDecimal("85.50"), new BigDecimal("1000000.00"), null);
+    }
 
     @Test
     void create_shouldSaveAndReturnResponse() {
@@ -44,6 +54,7 @@ class CounterpartyRiskProfileServiceImplTest {
                 "Acme Corp", "USA", "AA+", new BigDecimal("85.50"), new BigDecimal("1000000.00"));
 
         when(repository.save(any(CounterpartyRiskProfile.class))).thenReturn(entity);
+        when(mapper.toResponse(any(CounterpartyRiskProfile.class))).thenReturn(sampleResponse());
 
         CounterpartyRiskProfileResponse response = service.create(request);
 
@@ -53,6 +64,7 @@ class CounterpartyRiskProfileServiceImplTest {
         assertThat(response.riskScore()).isEqualByComparingTo(new BigDecimal("85.50"));
         assertThat(response.exposureLimit()).isEqualByComparingTo(new BigDecimal("1000000.00"));
         verify(repository).save(any(CounterpartyRiskProfile.class));
+        verify(mapper).toResponse(any(CounterpartyRiskProfile.class));
     }
 
     @Test
@@ -61,11 +73,13 @@ class CounterpartyRiskProfileServiceImplTest {
                 "Acme Corp", "USA", "AA+", new BigDecimal("85.50"), new BigDecimal("1000000.00"));
 
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
+        when(mapper.toResponse(any(CounterpartyRiskProfile.class))).thenReturn(sampleResponse());
 
         CounterpartyRiskProfileResponse response = service.getById(1L);
 
         assertThat(response.legalName()).isEqualTo("Acme Corp");
         verify(repository).findById(1L);
+        verify(mapper).toResponse(any(CounterpartyRiskProfile.class));
     }
 
     @Test
@@ -84,6 +98,7 @@ class CounterpartyRiskProfileServiceImplTest {
         Page<CounterpartyRiskProfile> page = new PageImpl<>(List.of(entity));
 
         when(repository.findAll(PageRequest.of(0, 20))).thenReturn(page);
+        when(mapper.toResponse(any(CounterpartyRiskProfile.class))).thenReturn(sampleResponse());
 
         Page<CounterpartyRiskProfileResponse> result = service.getAll(PageRequest.of(0, 20));
 
@@ -100,12 +115,14 @@ class CounterpartyRiskProfileServiceImplTest {
 
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
         when(repository.save(any(CounterpartyRiskProfile.class))).thenReturn(entity);
+        when(mapper.toResponse(any(CounterpartyRiskProfile.class))).thenReturn(sampleResponse());
 
         CounterpartyRiskProfileResponse response = service.update(1L, request);
 
         assertThat(response).isNotNull();
         verify(repository).findById(1L);
         verify(repository).save(any(CounterpartyRiskProfile.class));
+        verify(mapper).toResponse(any(CounterpartyRiskProfile.class));
     }
 
     @Test

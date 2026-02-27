@@ -1,9 +1,10 @@
 package com.example.api.application;
 
 import com.example.api.domain.CounterpartyRiskProfile;
-import com.example.api.dto.CounterpartyRiskProfileResponse;
-import com.example.api.dto.CreateCounterpartyRiskProfileRequest;
-import com.example.api.dto.UpdateCounterpartyRiskProfileRequest;
+import com.example.api.application.mapper.CounterpartyRiskProfileMapper;
+import com.example.api.dto.request.CreateCounterpartyRiskProfileRequest;
+import com.example.api.dto.request.UpdateCounterpartyRiskProfileRequest;
+import com.example.api.dto.response.CounterpartyRiskProfileResponse;
 import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.infrastructure.CounterpartyRiskProfileRepository;
 import org.slf4j.Logger;
@@ -19,9 +20,12 @@ public class CounterpartyRiskProfileServiceImpl implements CounterpartyRiskProfi
     private static final Logger log = LoggerFactory.getLogger(CounterpartyRiskProfileServiceImpl.class);
 
     private final CounterpartyRiskProfileRepository repository;
+    private final CounterpartyRiskProfileMapper mapper;
 
-    public CounterpartyRiskProfileServiceImpl(CounterpartyRiskProfileRepository repository) {
+    public CounterpartyRiskProfileServiceImpl(CounterpartyRiskProfileRepository repository,
+                                              CounterpartyRiskProfileMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
     @Override
@@ -37,7 +41,7 @@ public class CounterpartyRiskProfileServiceImpl implements CounterpartyRiskProfi
         );
         CounterpartyRiskProfile saved = repository.save(entity);
         log.info("Created counterparty risk profile with id: {}", saved.getCounterpartyId());
-        return CounterpartyRiskProfileResponse.fromEntity(saved);
+        return mapper.toResponse(saved);
     }
 
     @Override
@@ -47,7 +51,7 @@ public class CounterpartyRiskProfileServiceImpl implements CounterpartyRiskProfi
         CounterpartyRiskProfile entity = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Counterparty risk profile not found with id: " + id));
-        return CounterpartyRiskProfileResponse.fromEntity(entity);
+        return mapper.toResponse(entity);
     }
 
     @Override
@@ -56,7 +60,7 @@ public class CounterpartyRiskProfileServiceImpl implements CounterpartyRiskProfi
         log.info("Fetching counterparty risk profiles, page: {}, size: {}",
                 pageable.getPageNumber(), pageable.getPageSize());
         return repository.findAll(pageable)
-                .map(CounterpartyRiskProfileResponse::fromEntity);
+                .map(mapper::toResponse);
     }
 
     @Override
@@ -75,7 +79,7 @@ public class CounterpartyRiskProfileServiceImpl implements CounterpartyRiskProfi
         );
         CounterpartyRiskProfile updated = repository.save(entity);
         log.info("Updated counterparty risk profile with id: {}", updated.getCounterpartyId());
-        return CounterpartyRiskProfileResponse.fromEntity(updated);
+        return mapper.toResponse(updated);
     }
 
     @Override

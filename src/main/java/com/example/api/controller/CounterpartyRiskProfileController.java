@@ -1,9 +1,9 @@
 package com.example.api.controller;
 
 import com.example.api.application.CounterpartyRiskProfileService;
-import com.example.api.dto.CounterpartyRiskProfileResponse;
-import com.example.api.dto.CreateCounterpartyRiskProfileRequest;
-import com.example.api.dto.UpdateCounterpartyRiskProfileRequest;
+import com.example.api.dto.request.CreateCounterpartyRiskProfileRequest;
+import com.example.api.dto.request.UpdateCounterpartyRiskProfileRequest;
+import com.example.api.dto.response.CounterpartyRiskProfileResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
