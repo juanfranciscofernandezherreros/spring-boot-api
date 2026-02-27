@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Spring DI controllers store injected beans by reference; this is expected. -->
+    <Match>
+        <Class name="~com\.example\.api\.controller\..*"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <!-- JPA entities cannot be final, so CT_CONSTRUCTOR_THROW is suppressed. -->
+    <Match>
+        <Class name="~com\.example\.api\.domain\..*"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+</FindBugsFilter>
