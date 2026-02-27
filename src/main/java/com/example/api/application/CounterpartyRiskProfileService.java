@@ -6,15 +6,17 @@ import com.example.api.dto.response.CounterpartyRiskProfileResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.UUID;
+
 public interface CounterpartyRiskProfileService {
 
     CounterpartyRiskProfileResponse create(CreateCounterpartyRiskProfileRequest request);
 
-    CounterpartyRiskProfileResponse getById(Long id);
+    CounterpartyRiskProfileResponse getById(UUID id);
 
     Page<CounterpartyRiskProfileResponse> getAll(Pageable pageable);
 
-    CounterpartyRiskProfileResponse update(Long id, UpdateCounterpartyRiskProfileRequest request);
+    CounterpartyRiskProfileResponse update(UUID id, UpdateCounterpartyRiskProfileRequest request);
 
-    void delete(Long id);
+    void delete(UUID id);
 }

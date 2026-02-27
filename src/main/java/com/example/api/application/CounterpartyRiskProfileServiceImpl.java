@@ -7,17 +7,17 @@ import com.example.api.dto.request.UpdateCounterpartyRiskProfileRequest;
 import com.example.api.dto.response.CounterpartyRiskProfileResponse;
 import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.infrastructure.CounterpartyRiskProfileRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
+@Slf4j
 @Service
 public class CounterpartyRiskProfileServiceImpl implements CounterpartyRiskProfileService {
-
-    private static final Logger log = LoggerFactory.getLogger(CounterpartyRiskProfileServiceImpl.class);
 
     private final CounterpartyRiskProfileRepository repository;
     private final CounterpartyRiskProfileMapper mapper;
@@ -46,7 +46,7 @@ public class CounterpartyRiskProfileServiceImpl implements CounterpartyRiskProfi
 
     @Override
     @Transactional(readOnly = true)
-    public CounterpartyRiskProfileResponse getById(Long id) {
+    public CounterpartyRiskProfileResponse getById(UUID id) {
         log.info("Fetching counterparty risk profile with id: {}", id);
         CounterpartyRiskProfile entity = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -65,7 +65,7 @@ public class CounterpartyRiskProfileServiceImpl implements CounterpartyRiskProfi
 
     @Override
     @Transactional
-    public CounterpartyRiskProfileResponse update(Long id, UpdateCounterpartyRiskProfileRequest request) {
+    public CounterpartyRiskProfileResponse update(UUID id, UpdateCounterpartyRiskProfileRequest request) {
         log.info("Updating counterparty risk profile with id: {}", id);
         CounterpartyRiskProfile entity = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -84,7 +84,7 @@ public class CounterpartyRiskProfileServiceImpl implements CounterpartyRiskProfi
 
     @Override
     @Transactional
-    public void delete(Long id) {
+    public void delete(UUID id) {
         log.info("Deleting counterparty risk profile with id: {}", id);
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException(

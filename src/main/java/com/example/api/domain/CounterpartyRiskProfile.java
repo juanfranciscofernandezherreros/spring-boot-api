@@ -9,7 +9,8 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "counterparty_risk_profile", indexes = {
@@ -19,9 +20,9 @@ import java.time.LocalDateTime;
 public class CounterpartyRiskProfile {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "counterparty_id")
-    private Long counterpartyId;
+    private UUID counterpartyId;
 
     @Column(name = "legal_name", nullable = false, length = 200)
     private String legalName;
@@ -39,7 +40,7 @@ public class CounterpartyRiskProfile {
     private BigDecimal exposureLimit;
 
     @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     protected CounterpartyRiskProfile() {
     }
@@ -63,7 +64,7 @@ public class CounterpartyRiskProfile {
         this.creditRating = creditRating;
         this.riskScore = riskScore;
         this.exposureLimit = exposureLimit;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
     }
 
     public void updateDetails(String legalName, String countryCode, String creditRating,
@@ -87,7 +88,7 @@ public class CounterpartyRiskProfile {
         this.exposureLimit = exposureLimit;
     }
 
-    public Long getCounterpartyId() {
+    public UUID getCounterpartyId() {
         return counterpartyId;
     }
 
@@ -111,7 +112,7 @@ public class CounterpartyRiskProfile {
         return exposureLimit;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 }
