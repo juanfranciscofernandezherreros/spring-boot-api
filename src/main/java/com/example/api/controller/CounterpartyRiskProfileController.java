@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
-@RequestMapping("/api/v1/counterparty-risk-profiles")
+@RequestMapping("${api.base-path}/counterparty-risk-profiles")
 public class CounterpartyRiskProfileController {
 
     private final CounterpartyRiskProfileService service;
@@ -36,7 +38,7 @@ public class CounterpartyRiskProfileController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CounterpartyRiskProfileResponse> getById(@PathVariable Long id) {
+    public ResponseEntity<CounterpartyRiskProfileResponse> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(service.getById(id));
     }
 
@@ -47,13 +49,13 @@ public class CounterpartyRiskProfileController {
 
     @PutMapping("/{id}")
     public ResponseEntity<CounterpartyRiskProfileResponse> update(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid @RequestBody UpdateCounterpartyRiskProfileRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }

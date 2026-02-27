@@ -18,11 +18,13 @@
     <description>Basic Spring Boot 3 Hello World API</description>
 
     <properties>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <cucumber.version>7.15.0</cucumber.version>
         <lombok.version>1.18.30</lombok.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <springdoc.version>2.3.0</springdoc.version>
+        <micrometer-tracing.version>1.2.5</micrometer-tracing.version>
+        <logstash-logback.version>7.4</logstash-logback.version>
     </properties>
 
     <dependencies>
@@ -59,6 +61,33 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${springdoc.version}</version>
+        </dependency>
+
+        <!-- AOP -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <!-- Actuator + Tracing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.zipkin.reporter2</groupId>
+            <artifactId>zipkin-reporter-brave</artifactId>
+        </dependency>
+
+        <!-- Structured JSON Logging -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>${logstash-logback.version}</version>
         </dependency>
 
         <!-- Database -->
@@ -140,6 +169,8 @@
                         <exclude>**/config/**</exclude>
                         <exclude>**/exception/GlobalExceptionHandler**</exclude>
                         <exclude>**/application/mapper/**</exclude>
+                        <exclude>**/application/aspect/**</exclude>
+                        <exclude>**/bootstrap/**</exclude>
                     </excludes>
                 </configuration>
                 <executions>
@@ -169,6 +200,11 @@
                                     <limits>
                                         <limit>
                                             <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.85</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
                                             <value>COVEREDRATIO</value>
                                             <minimum>0.80</minimum>
                                         </limit>

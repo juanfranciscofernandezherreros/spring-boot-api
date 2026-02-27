@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,6 +39,9 @@ class CounterpartyRiskProfileServiceImplTest {
 
     @InjectMocks
     private CounterpartyRiskProfileServiceImpl service;
+
+    private static final UUID SAMPLE_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private static final UUID NON_EXISTENT_ID = UUID.fromString("00000000-0000-0000-0000-000000000999");
 
     private CounterpartyRiskProfileResponse sampleResponse() {
         return new CounterpartyRiskProfileResponse(
@@ -72,23 +76,23 @@ class CounterpartyRiskProfileServiceImplTest {
         CounterpartyRiskProfile entity = new CounterpartyRiskProfile(
                 "Acme Corp", "USA", "AA+", new BigDecimal("85.50"), new BigDecimal("1000000.00"));
 
-        when(repository.findById(1L)).thenReturn(Optional.of(entity));
+        when(repository.findById(SAMPLE_ID)).thenReturn(Optional.of(entity));
         when(mapper.toResponse(any(CounterpartyRiskProfile.class))).thenReturn(sampleResponse());
 
-        CounterpartyRiskProfileResponse response = service.getById(1L);
+        CounterpartyRiskProfileResponse response = service.getById(SAMPLE_ID);
 
         assertThat(response.legalName()).isEqualTo("Acme Corp");
-        verify(repository).findById(1L);
+        verify(repository).findById(SAMPLE_ID);
         verify(mapper).toResponse(any(CounterpartyRiskProfile.class));
     }
 
     @Test
     void getById_shouldThrowResourceNotFoundException_whenNotFound() {
-        when(repository.findById(999L)).thenReturn(Optional.empty());
+        when(repository.findById(NON_EXISTENT_ID)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.getById(999L))
+        assertThatThrownBy(() -> service.getById(NON_EXISTENT_ID))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("999");
+                .hasMessageContaining(NON_EXISTENT_ID.toString());
     }
 
     @Test
@@ -113,14 +117,14 @@ class CounterpartyRiskProfileServiceImplTest {
         UpdateCounterpartyRiskProfileRequest request = new UpdateCounterpartyRiskProfileRequest(
                 "Acme Updated", "GBR", "A-", new BigDecimal("70.00"), new BigDecimal("500000.00"));
 
-        when(repository.findById(1L)).thenReturn(Optional.of(entity));
+        when(repository.findById(SAMPLE_ID)).thenReturn(Optional.of(entity));
         when(repository.save(any(CounterpartyRiskProfile.class))).thenReturn(entity);
         when(mapper.toResponse(any(CounterpartyRiskProfile.class))).thenReturn(sampleResponse());
 
-        CounterpartyRiskProfileResponse response = service.update(1L, request);
+        CounterpartyRiskProfileResponse response = service.update(SAMPLE_ID, request);
 
         assertThat(response).isNotNull();
-        verify(repository).findById(1L);
+        verify(repository).findById(SAMPLE_ID);
         verify(repository).save(any(CounterpartyRiskProfile.class));
         verify(mapper).toResponse(any(CounterpartyRiskProfile.class));
     }
@@ -130,30 +134,30 @@ class CounterpartyRiskProfileServiceImplTest {
         UpdateCounterpartyRiskProfileRequest request = new UpdateCounterpartyRiskProfileRequest(
                 "Acme Updated", "GBR", "A-", new BigDecimal("70.00"), new BigDecimal("500000.00"));
 
-        when(repository.findById(999L)).thenReturn(Optional.empty());
+        when(repository.findById(NON_EXISTENT_ID)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.update(999L, request))
+        assertThatThrownBy(() -> service.update(NON_EXISTENT_ID, request))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("999");
+                .hasMessageContaining(NON_EXISTENT_ID.toString());
     }
 
     @Test
     void delete_shouldDelete_whenFound() {
-        when(repository.existsById(1L)).thenReturn(true);
+        when(repository.existsById(SAMPLE_ID)).thenReturn(true);
 
-        service.delete(1L);
+        service.delete(SAMPLE_ID);
 
-        verify(repository).deleteById(1L);
+        verify(repository).deleteById(SAMPLE_ID);
     }
 
     @Test
     void delete_shouldThrowResourceNotFoundException_whenNotFound() {
-        when(repository.existsById(999L)).thenReturn(false);
+        when(repository.existsById(NON_EXISTENT_ID)).thenReturn(false);
 
-        assertThatThrownBy(() -> service.delete(999L))
+        assertThatThrownBy(() -> service.delete(NON_EXISTENT_ID))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("999");
+                .hasMessageContaining(NON_EXISTENT_ID.toString());
 
-        verify(repository, never()).deleteById(999L);
+        verify(repository, never()).deleteById(NON_EXISTENT_ID);
     }
 }

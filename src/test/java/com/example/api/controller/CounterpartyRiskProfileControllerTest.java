@@ -15,9 +15,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -44,12 +45,14 @@ class CounterpartyRiskProfileControllerTest {
     private CounterpartyRiskProfileService service;
 
     private static final String BASE_URL = "/api/v1/counterparty-risk-profiles";
+    private static final UUID SAMPLE_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private static final UUID NON_EXISTENT_ID = UUID.fromString("00000000-0000-0000-0000-000000000999");
 
     private CounterpartyRiskProfileResponse sampleResponse() {
         return new CounterpartyRiskProfileResponse(
-                1L, "Acme Corp", "USA", "AA+",
+                SAMPLE_ID, "Acme Corp", "USA", "AA+",
                 new BigDecimal("85.50"), new BigDecimal("1000000.00"),
-                LocalDateTime.of(2024, 1, 1, 12, 0)
+                Instant.parse("2024-01-01T12:00:00Z")
         );
     }
 
@@ -69,7 +72,7 @@ class CounterpartyRiskProfileControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.counterpartyId").value(1))
+                .andExpect(jsonPath("$.counterpartyId").value(SAMPLE_ID.toString()))
                 .andExpect(jsonPath("$.legalName").value("Acme Corp"))
                 .andExpect(jsonPath("$.countryCode").value("USA"));
     }
@@ -89,20 +92,20 @@ class CounterpartyRiskProfileControllerTest {
 
     @Test
     void getById_shouldReturn200() throws Exception {
-        when(service.getById(1L)).thenReturn(sampleResponse());
+        when(service.getById(SAMPLE_ID)).thenReturn(sampleResponse());
 
-        mockMvc.perform(get(BASE_URL + "/1"))
+        mockMvc.perform(get(BASE_URL + "/" + SAMPLE_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.counterpartyId").value(1))
+                .andExpect(jsonPath("$.counterpartyId").value(SAMPLE_ID.toString()))
                 .andExpect(jsonPath("$.legalName").value("Acme Corp"));
     }
 
     @Test
     void getById_shouldReturn404_whenNotFound() throws Exception {
-        when(service.getById(999L)).thenThrow(
-                new ResourceNotFoundException("Counterparty risk profile not found with id: 999"));
+        when(service.getById(NON_EXISTENT_ID)).thenThrow(
+                new ResourceNotFoundException("Counterparty risk profile not found with id: " + NON_EXISTENT_ID));
 
-        mockMvc.perform(get(BASE_URL + "/999"))
+        mockMvc.perform(get(BASE_URL + "/" + NON_EXISTENT_ID))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
     }
@@ -119,7 +122,7 @@ class CounterpartyRiskProfileControllerTest {
 
     @Test
     void update_shouldReturn200() throws Exception {
-        when(service.update(eq(1L), any())).thenReturn(sampleResponse());
+        when(service.update(eq(SAMPLE_ID), any())).thenReturn(sampleResponse());
 
         Map<String, Object> request = Map.of(
                 "legalName", "Acme Corp",
@@ -129,24 +132,24 @@ class CounterpartyRiskProfileControllerTest {
                 "exposureLimit", "1000000.00"
         );
 
-        mockMvc.perform(put(BASE_URL + "/1")
+        mockMvc.perform(put(BASE_URL + "/" + SAMPLE_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.counterpartyId").value(1));
+                .andExpect(jsonPath("$.counterpartyId").value(SAMPLE_ID.toString()));
     }
 
     @Test
     void update_shouldReturn404_whenNotFound() throws Exception {
-        when(service.update(eq(999L), any())).thenThrow(
-                new ResourceNotFoundException("Counterparty risk profile not found with id: 999"));
+        when(service.update(eq(NON_EXISTENT_ID), any())).thenThrow(
+                new ResourceNotFoundException("Counterparty risk profile not found with id: " + NON_EXISTENT_ID));
 
         Map<String, Object> request = Map.of(
                 "legalName", "Acme Corp",
                 "countryCode", "USA"
         );
 
-        mockMvc.perform(put(BASE_URL + "/999")
+        mockMvc.perform(put(BASE_URL + "/" + NON_EXISTENT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -155,18 +158,18 @@ class CounterpartyRiskProfileControllerTest {
 
     @Test
     void delete_shouldReturn204() throws Exception {
-        doNothing().when(service).delete(1L);
+        doNothing().when(service).delete(SAMPLE_ID);
 
-        mockMvc.perform(delete(BASE_URL + "/1"))
+        mockMvc.perform(delete(BASE_URL + "/" + SAMPLE_ID))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     void delete_shouldReturn404_whenNotFound() throws Exception {
-        doThrow(new ResourceNotFoundException("Counterparty risk profile not found with id: 999"))
-                .when(service).delete(999L);
+        doThrow(new ResourceNotFoundException("Counterparty risk profile not found with id: " + NON_EXISTENT_ID))
+                .when(service).delete(NON_EXISTENT_ID);
 
-        mockMvc.perform(delete(BASE_URL + "/999"))
+        mockMvc.perform(delete(BASE_URL + "/" + NON_EXISTENT_ID))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
     }
