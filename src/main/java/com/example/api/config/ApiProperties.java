@@ -7,6 +7,7 @@ public record ApiProperties(
         String basePath,
         String helloPath,
         String counterpartyRiskProfilesPath,
-        String transferenciasPath
+        String transferenciasPath,
+        String cryptocurrenciesPath
 ) {
 }
