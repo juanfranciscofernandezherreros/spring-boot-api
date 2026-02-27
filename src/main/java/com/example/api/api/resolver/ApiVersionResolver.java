@@ -23,7 +23,8 @@ public class ApiVersionResolver {
         ApiVersion version = ApiVersion.fromString(headerValue);
         if (version == null) {
             throw new UnsupportedVersionException(
-                    "Unsupported API version: " + headerValue + ". Supported versions: " + versionProperties.supported());
+                    "Unsupported API version: " + headerValue
+                            + ". Supported versions: " + versionProperties.supported());
         }
         return version;
     }
