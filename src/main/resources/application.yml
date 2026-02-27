@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: spring-boot-api
+  datasource:
+    url: jdbc:postgresql://localhost:5432/springbootapi
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

@@ -1,4 +1,4 @@
-package com.example.api.dto;
+package com.example.api.dto.request;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
-public record CreateCounterpartyRiskProfileRequest(
+public record UpdateCounterpartyRiskProfileRequest(
         @NotBlank(message = "Legal name is required")
         @Size(max = 200, message = "Legal name must not exceed 200 characters")
         String legalName,

@@ -1,7 +1,7 @@
 package com.example.api.controller;
 
 import com.example.api.application.CounterpartyRiskProfileService;
-import com.example.api.dto.CounterpartyRiskProfileResponse;
+import com.example.api.dto.response.CounterpartyRiskProfileResponse;
 import com.example.api.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
